@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+    <arg name="camera" default="/sensors/camera" />
+
+    <!-- Play rosbag record -->
+    <node 
+        pkg="rosbag"
+        type="play"
+        name="player"
+        output="screen"
+        args="--clock $(find auro_calibration)/bagfiles/2016-11-22-14-32-13_test.bag" />
+
+    <!-- Nodelet manager for this pipeline -->
+    <node
+        pkg="nodelet"
+        type="nodelet"
+        args="manager"
+        name="auro_manager"
+        output="screen" />
+
+    <node
+        pkg="image_proc"
+        type="image_proc" 
+        name="image_proc_node1" />
+
+    <!-- Run image_proc/rectify nodelet -->
+    <node
+        pkg="nodelet"
+        type="nodelet"
+        name="rectify_color"
+        args="load image_proc/rectify auro_manager --no-bond" >
+        
+        <!-- Remap input topics -->
+        <remap from="image_mono" to="$(arg camera)/image_color" />
+        <remap from="camera_info" to="$(arg camera)/camera_info" />
+
+        <!-- Remap output topics -->
+        <remap from="image_rect" to="$(arg camera)/image_rect_color" />
+    </node>
+
+    <!-- Run image view to display the unrectified image -->
+    <node 
+        name="unrectified" 
+        pkg="image_view"
+        type="image_view"
+        respawn="false"
+        output="screen">
+        
+        <remap from="image" to="$(arg camera)/image_color" />
+    </node>
+
+    <!-- Run image view to display the rectified image -->
+    <node 
+        name="rectified" 
+        pkg="image_view"
+        type="image_view"
+        respawn="false"
+        output="screen">
+        
+        <remap from="image" to="$(arg camera)/image_rect_color" />
+    </node>
+
+</launch>
