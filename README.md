@@ -23,7 +23,6 @@ This launch file will only play the rosbag record file.
 
 ```
 roslaunch auro_calibration play_rosbag.launch
-
 ```
 
 ### Run Camera Calibration
