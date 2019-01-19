@@ -17,9 +17,7 @@ import yaml
 
 # ROS modules
 PKG = 'auro_calibration'
-import roslib
-
-roslib.load_manifest(PKG)
+import roslib; roslib.load_manifest(PKG)
 import rosbag
 import rospy
 
