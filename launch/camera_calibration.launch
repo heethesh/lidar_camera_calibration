@@ -2,63 +2,27 @@
 <launch>
 
     <arg name="camera" default="/sensors/camera" />
+    <arg name="size" default="7x5" />
+    <arg name="square" default="0.05" />
+    <arg name="k-coefficients" default="2" />
 
     <!-- Play rosbag record -->
-    <node 
-        pkg="rosbag"
-        type="play"
-        name="player"
+    <include file="$(find auro_calibration)/launch/play_rosbag.launch"/>
+
+    <!-- Run camera calibration -->
+    <node   
+        pkg="camera_calibration"
+        type="cameracalibrator.py"
+        name="cameracalibrator"
         output="screen"
-        args="--clock $(find auro_calibration)/bagfiles/2016-11-22-14-32-13_test.bag" />
+        args="--size=$(arg size) 
+              --square=$(arg square)
+              --k-coefficients=$(arg k-coefficients) 
+              --no-service-check" >
 
-    <!-- Nodelet manager for this pipeline -->
-    <node
-        pkg="nodelet"
-        type="nodelet"
-        args="manager"
-        name="auro_manager"
-        output="screen" />
-
-    <node
-        pkg="image_proc"
-        type="image_proc" 
-        name="image_proc_node1" />
-
-    <!-- Run image_proc/rectify nodelet -->
-    <node
-        pkg="nodelet"
-        type="nodelet"
-        name="rectify_color"
-        args="load image_proc/rectify auro_manager --no-bond" >
-        
         <!-- Remap input topics -->
-        <remap from="image_mono" to="$(arg camera)/image_color" />
-        <remap from="camera_info" to="$(arg camera)/camera_info" />
-
-        <!-- Remap output topics -->
-        <remap from="image_rect" to="$(arg camera)/image_rect_color" />
-    </node>
-
-    <!-- Run image view to display the unrectified image -->
-    <node 
-        name="unrectified" 
-        pkg="image_view"
-        type="image_view"
-        respawn="false"
-        output="screen">
-        
         <remap from="image" to="$(arg camera)/image_color" />
-    </node>
-
-    <!-- Run image view to display the rectified image -->
-    <node 
-        name="rectified" 
-        pkg="image_view"
-        type="image_view"
-        respawn="false"
-        output="screen">
-        
-        <remap from="image" to="$(arg camera)/image_rect_color" />
+        <remap from="camera" to="$(arg camera)/camera_info" />
     </node>
 
 </launch>
