@@ -36,19 +36,22 @@
         <remap from="image_rect" to="$(arg camera)/image_rect_color" />
     </node>
 
-    <!-- Run image view to display the unrectified image -->
-    <node 
-        name="unrectified" 
-        pkg="image_view"
-        type="image_view"
-        respawn="false"
-        output="screen">
-        
-        <!-- Remap input topics -->
-        <remap from="image" to="$(arg camera)/image_color" />
+    <!-- Setup params for Camera-LiDAR calibration script -->
+    <param name="camera_info_topic" type="str" value="$(arg camera)/camera_info" />
+    <param name="image_color_topic" type="str" value="$(arg camera)/image_color" />
+    <param name="velodyne_points_topic" type="str" value="/sensors/velodyne_points" />
+    <param name="camera_lidar_topic" type="str" value="$(arg camera)/camera_lidar" />
+    <param name="project_mode" type="bool" value="true" />
+
+    <!-- Run Camera-LiDAR calibration script -->
+    <node   
+        pkg="auro_calibration"
+        type="calibrate_camera_lidar.py"
+        name="calibrate_camera_lidar"
+        output="screen" >
     </node>
 
-    <!-- Run image view to display the rectified image -->
+    <!-- Run image view to display the projected points image -->
     <node 
         name="rectified" 
         pkg="image_view"
@@ -57,7 +60,7 @@
         output="screen">
         
         <!-- Remap input topics -->
-        <remap from="image" to="$(arg camera)/image_rect_color" />
+        <remap from="image" to="$(arg camera)/camera_lidar" />
     </node>
 
 </launch>

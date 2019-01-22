@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
 
-    <arg name="bagfile" default="2016-11-22-14-32-13_test.bag" />
+    <arg name="bagfile" default="2016-11-22-14-32-13_test_updated.bag" />
 
     <!-- Play rosbag record -->
     <node 
