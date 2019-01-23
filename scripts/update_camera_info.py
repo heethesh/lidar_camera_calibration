@@ -4,7 +4,7 @@
 Script to update the camera calibration data into the ROSBAG file
 Ensure that this file has executable permissions
 
-rosrun auro_calibration update_camera_info.py rosbagb.bag calibrayion.yaml
+rosrun auro_calibration update_camera_info.py rosbag.bag calibration.yaml
 '''
 
 # Python 2/3 compatibility
