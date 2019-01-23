@@ -1,10 +1,22 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 '''
+Author  : Heethesh Vhavle
+Email   : heethesh@cmu.edu
+Version : 1.0.1
+Date    : Jan 18, 2019
+
+Description:
 Script to update the camera calibration data into the ROSBAG file
 Ensure that this file has executable permissions
 
-rosrun auro_calibration update_camera_info.py rosbag.bag calibration.yaml
+Example Usage:
+$ rosrun auro_calibration update_camera_info.py rosbag.bag calibration.yaml
+
+Notes:
+Make sure this file has executable permissions:
+$ chmod +x update_camera_info.py
 '''
 
 # Python 2/3 compatibility
