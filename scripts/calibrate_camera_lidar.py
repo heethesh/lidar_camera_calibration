@@ -51,8 +51,8 @@ import threading
 import multiprocessing
 
 # External modules
-import numpy as np
 import cv2
+import numpy as np
 import matplotlib.cm
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -62,20 +62,23 @@ PKG = 'auro_calibration'
 import roslib; roslib.load_manifest(PKG)
 import rosbag
 import rospy
+import tf2_ros
 import ros_numpy
 import image_geometry
 import message_filters
 from cv_bridge import CvBridge, CvBridgeError
 from tf.transformations import euler_from_matrix
+from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 from sensor_msgs.msg import Image, CameraInfo, PointCloud2
 
 # Global variables
 PAUSE = False
 FIRST_TIME = True
 KEY_LOCK = threading.Lock()
-EXTRINSICS = None
-CAMERA_MODEL = image_geometry.PinholeCameraModel()
+TF_BUFFER = None
+TF_LISTENER = None
 CV_BRIDGE = CvBridge()
+CAMERA_MODEL = image_geometry.PinholeCameraModel()
 
 # Global paths
 PKG_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -106,13 +109,13 @@ def start_keyboard_handler():
 
 '''
 Save the point correspondences and image data
-Points data will be appended if file alreaddy exists
+Points data will be appended if file already exists
 
 Inputs:
     data - [numpy array] - points or opencv image
     filename - [str] - filename to save
     folder - [str] - folder to save at
-    is_image - [bool] - to specify wether points or image data
+    is_image - [bool] - to specify whether points or image data
 
 Outputs: None
 '''
@@ -147,7 +150,7 @@ Runs the image point selection GUI process
 Inputs:
     img_msg - [sensor_msgs/Image] - ROS sensor image message
     now - [int] - ROS bag time in seconds
-    rectify - [bool] - to specify wether to rectify image ot not
+    rectify - [bool] - to specify whether to rectify image or not
 
 Outputs:
     Picked points saved in PKG_PATH/CALIB_PATH/img_corners.npy
@@ -211,18 +214,21 @@ def extract_points_2D(img_msg, now, rectify=False):
 Runs the LiDAR point selection GUI process
 
 Inputs:
-    points - [numpy array] - (N, 1) array of tuples (X, Y, Z, intensity)
+    velodyne - [sensor_msgs/PointCloud2] - ROS velodyne PCL2 message
     now - [int] - ROS bag time in seconds
 
 Outputs:
     Picked points saved in PKG_PATH/CALIB_PATH/pcl_corners.npy
 '''
-def extract_points_3D(points, now):
+def extract_points_3D(velodyne, now):
     # Log PID
     rospy.loginfo('3D Picker PID: [%d]' % os.getpid())
 
-    # Select points within chessboard range
+    # Extract points data
+    points = ros_numpy.point_cloud2.pointcloud2_to_array(velodyne)
     points = np.asarray(points.tolist())
+
+    # Select points within chessboard range
     inrange = np.where((points[:, 0] > 0) &
                        (points[:, 0] < 2.5) &
                        (np.abs(points[:, 1]) < 2.5) &
@@ -307,7 +313,12 @@ def calibrate(points2D=None, points3D=None):
     folder = os.path.join(PKG_PATH, CALIB_PATH)
     if points2D is None: points2D = np.load(os.path.join(folder, 'img_corners.npy'))
     if points3D is None: points3D = np.load(os.path.join(folder, 'pcl_corners.npy'))
+    
+    # Check points shape
     assert(points2D.shape[0] == points3D.shape[0])
+    if not (points2D.shape[0] >= 5):
+        rospy.logwarn('PnP RANSAC Requires minimum 5 points')
+        return
 
     # Obtain camera matrix and distortion coefficients
     camera_matrix = CAMERA_MODEL.intrinsicMatrix()
@@ -323,11 +334,11 @@ def calibrate(points2D=None, points3D=None):
     euler = euler_from_matrix(rotation_matrix)
     
     # Save extrinsics
-    np.savez(os.path.join(folder, 'extrinsics.npz'), 
+    np.savez(os.path.join(folder, 'extrinsics.npz'),
         euler=euler, R=rotation_matrix, T=translation_vector.T)
 
     # Display results
-    print('Euler anlges (RPY):', euler)
+    print('Euler angles (RPY):', euler)
     print('Rotation Matrix:', rotation_matrix)
     print('Translation Offsets:', translation_vector.T)
 
@@ -337,40 +348,45 @@ Projects the point cloud on to the image plane using the extrinsics
 
 Inputs:
     img_msg - [sensor_msgs/Image] - ROS sensor image message
-    points3D - [numpy array] - (N, 3) array of 3D points
+    velodyne - [sensor_msgs/PointCloud2] - ROS velodyne PCL2 message
     image_pub - [sensor_msgs/Image] - ROS image publisher
 
 Outputs:
     Projected points published on /sensors/camera/camera_lidar topic
 '''
-def project_point_cloud(points3D, img_msg, image_pub):
+def project_point_cloud(velodyne, img_msg, image_pub):
     # Read image using CV bridge
     try:
         img = CV_BRIDGE.imgmsg_to_cv2(img_msg, 'bgr8')
     except CvBridgeError as e: 
         rospy.logerr(e)
         return
-    
-    # Rectify the image
-    CAMERA_MODEL.rectifyImage(img, img)
-
-    # Filter points in front of camera
-    points3D = np.asarray(points3D.tolist())
-    inrange = np.where((points3D[:, 0] > 0) &
-                       (points3D[:, 0] < 6) &
-                       (np.abs(points3D[:, 1]) < 6) &
-                       (np.abs(points3D[:, 2]) < 6))
 
     # Transform the point cloud
-    points3D_transformed = np.matmul(EXTRINSICS['R'], points3D[:, :3].T).T + EXTRINSICS['T']
-    points3D_transformed = points3D_transformed[inrange[0]]
+    try:
+        transform = TF_BUFFER.lookup_transform('world', 'velodyne', rospy.Time())
+        velodyne = do_transform_cloud(velodyne, transform)
+    except tf2_ros.LookupException:
+        pass
+
+    # Extract points from message
+    points3D = ros_numpy.point_cloud2.pointcloud2_to_array(velodyne)
+    points3D = np.asarray(points3D.tolist())
+    
+    # Filter points in front of camera
+    inrange = np.where((points3D[:, 2] > 0) &
+                       (points3D[:, 2] < 6) &
+                       (np.abs(points3D[:, 0]) < 6) &
+                       (np.abs(points3D[:, 1]) < 6))
+    max_intensity = np.max(points3D[:, -1])
+    points3D = points3D[inrange[0]]
 
     # Color map for the points
     cmap = matplotlib.cm.get_cmap('jet')
-    colors = cmap(points3D[:, -1][inrange[0]] / np.max(points3D[:, -1])) * 255
+    colors = cmap(points3D[:, -1] / max_intensity) * 255
 
     # Project to 2D and filter points within image boundaries
-    points2D = [ CAMERA_MODEL.project3dToPixel(point) for point in points3D_transformed ]
+    points2D = [ CAMERA_MODEL.project3dToPixel(point) for point in points3D[:, :3] ]
     points2D = np.asarray(points2D)
     inrange = np.where((points2D[:, 0] >= 0) &
                        (points2D[:, 1] >= 0) &
@@ -388,10 +404,6 @@ def project_point_cloud(points3D, img_msg, image_pub):
     except CvBridgeError as e: 
         rospy.logerr(e)
 
-    # Display in OpenCV GUI
-    # cv2.imshow('Camera/LiDAR Calibration Visualization', img)
-    # cv2.waitKey(3)
-
 
 '''
 Callback function to publish project image and run calibration
@@ -405,7 +417,7 @@ Inputs:
 Outputs: None
 '''
 def callback(image, camera_info, velodyne, image_pub=None):
-    global CAMERA_MODEL, FIRST_TIME, PAUSE, EXTRINSICS
+    global CAMERA_MODEL, FIRST_TIME, PAUSE, TF_BUFFER, TF_LISTENER
 
     # Setup the pinhole camera model
     if FIRST_TIME:
@@ -415,23 +427,21 @@ def callback(image, camera_info, velodyne, image_pub=None):
         rospy.loginfo('Setting up camera model')
         CAMERA_MODEL.fromCameraInfo(camera_info)
 
-        # Load Camera-LiDAR extrinsics
-        rospy.loginfo('Loading extrinsics data')
-        if PROJECT_MODE:
-            folder = os.path.join(PKG_PATH, CALIB_PATH)
-            EXTRINSICS = np.load(os.path.join(folder, 'extrinsics.npz'))
+        # TF listener
+        rospy.loginfo('Setting up static transform listener')
+        TF_BUFFER = tf2_ros.Buffer()
+        TF_LISTENER = tf2_ros.TransformListener(TF_BUFFER)
 
     # Projection/display mode
     if PROJECT_MODE:
-        point_array = ros_numpy.point_cloud2.pointcloud2_to_array(velodyne)
-        project_point_cloud(point_array, image, image_pub)
+        project_point_cloud(velodyne, image, image_pub)
 
     # Calibration mode
     elif PAUSE:
+        # Create GUI processes
         now = rospy.get_rostime()
-        point_array = ros_numpy.point_cloud2.pointcloud2_to_array(velodyne)
         img_p = multiprocessing.Process(target=extract_points_2D, args=[image, now])
-        pcl_p = multiprocessing.Process(target=extract_points_3D, args=[point_array, now])
+        pcl_p = multiprocessing.Process(target=extract_points_3D, args=[velodyne, now])
         img_p.start(); pcl_p.start()
         img_p.join(); pcl_p.join()
 
@@ -481,9 +491,8 @@ def listener(camera_info, image_color, velodyne_points, camera_lidar=None):
     # Keep python from exiting until this node is stopped
     try:
         rospy.spin()
-    except KeyboardInterrupt:
+    except rospy.ROSInterruptException:
         rospy.loginfo('Shutting down')
-        # cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
