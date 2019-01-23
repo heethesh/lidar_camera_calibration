@@ -76,7 +76,7 @@ roslaunch auro_calibration play_rosbag.launch
 rosrun auro_calibration calibrate_camera_lidar.py --calibrate
 ```
 
-Press [ENTER] to launch the GUIs and pick the corresponding points by selecting the four corner points of the checkerboard in both the camera and the LiDAR frames. 16 corresponding points were selected for calibration at varying position and depths of the checkerboard. One such set of points picked are shown below. OpenCV's PnP RANSAC method was used to find the rotation and translation transforms between the camera and the LiDAR.
+Press [ENTER] to launch the GUIs and pick the corresponding points by selecting the four corner points of the checkerboard in both the camera and the LiDAR frames. 16 corresponding points were selected for calibration at varying position and depths of the checkerboard. One such set of points picked are shown below. OpenCV's PnP RANSAC method was used to find the rotation and translation transforms between the camera and the LiDAR. Since OpenCV's function rectifies the images internally, the 2D points are picked from the unrectified image. Additional, the `rectify` flag can be set to `True` while creating the GUI process to pick points from a rectified image.
 
 **NOTE: The point files are appended and the extrinsics estimates are calculated and refined continuously using a RANSAC approach.**
 
