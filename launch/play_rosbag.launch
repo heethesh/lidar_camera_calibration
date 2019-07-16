@@ -9,6 +9,6 @@
         type="play"
         name="player"
         output="screen"
-        args="--clock --loop $(find auro_calibration)/bagfiles/$(arg bagfile)" />
+        args="--clock --loop $(find lidar_camera_calibration)/bagfiles/$(arg bagfile)" />
 
 </launch>

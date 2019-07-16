@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="2">
     
-  <name>auro_calibration</name>
+  <name>lidar_camera_calibration</name>
   <version>1.0.0</version>
-  <description>The auro_calibration package</description>
+  <description>The lidar_camera_calibration package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <maintainer email="heethesh@cmu.edu">Heethesh Vhavle</maintainer>
@@ -12,7 +12,7 @@
   <license>TODO</license>
 
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
-  <url type="website">http://github.com/heethesh/auro_calibration</url>
+  <url type="website">http://github.com/heethesh/lidar_camera_calibration</url>
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
   <author email="heethesh@cmu.edu">Heethesh Vhavle</author>

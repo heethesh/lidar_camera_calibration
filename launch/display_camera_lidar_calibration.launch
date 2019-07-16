@@ -4,7 +4,7 @@
     <arg name="camera" default="/sensors/camera" />
 
     <!-- Play rosbag record -->
-    <include file="$(find auro_calibration)/launch/play_rosbag.launch">
+    <include file="$(find lidar_camera_calibration)/launch/play_rosbag.launch">
         <arg name="bagfile" value="2016-11-22-14-32-13_test_updated.bag" />
     </include>
 
@@ -13,7 +13,7 @@
         pkg="nodelet"
         type="nodelet"
         args="manager"
-        name="auro_manager"
+        name="lidar_camera_manager"
         output="screen" />
 
     <node
@@ -26,7 +26,7 @@
         pkg="nodelet"
         type="nodelet"
         name="rectify_color"
-        args="load image_proc/rectify auro_manager --no-bond" >
+        args="load image_proc/rectify lidar_camera_manager --no-bond" >
         
         <!-- Remap input topics -->
         <remap from="image_mono" to="$(arg camera)/image_color" />
@@ -53,7 +53,7 @@
 
     <!-- Run Camera-LiDAR projection script -->
     <node   
-        pkg="auro_calibration"
+        pkg="lidar_camera_calibration"
         type="calibrate_camera_lidar.py"
         name="calibrate_camera_lidar"
         output="screen" />

@@ -12,7 +12,7 @@ Script to update the camera calibration data into the ROSBAG file
 Ensure that this file has executable permissions
 
 Example Usage:
-$ rosrun auro_calibration update_camera_info.py rosbag.bag calibration.yaml
+$ rosrun lidar_camera_calibration update_camera_info.py rosbag.bag calibration.yaml
 
 Notes:
 Make sure this file has executable permissions:
@@ -28,7 +28,7 @@ import sys
 import yaml
 
 # ROS modules
-PKG = 'auro_calibration'
+PKG = 'lidar_camera_calibration'
 import roslib; roslib.load_manifest(PKG)
 import rosbag
 import rospy

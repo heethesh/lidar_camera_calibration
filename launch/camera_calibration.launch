@@ -7,7 +7,7 @@
     <arg name="k-coefficients" default="2" />
 
     <!-- Play rosbag record -->
-    <include file="$(find auro_calibration)/launch/play_rosbag.launch">
+    <include file="$(find lidar_camera_calibration)/launch/play_rosbag.launch">
         <arg name="bagfile" value="2016-11-22-14-32-13_test.bag" />
     </include>
 

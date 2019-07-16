@@ -13,7 +13,7 @@ Script to find the transformation between the Camera and the LiDAR
 Example Usage:
 1. To perform calibration using the GUI to pick correspondences:
 
-    $ rosrun auro_calibration calibrate_camera_lidar.py --calibrate
+    $ rosrun lidar_camera_calibration calibrate_camera_lidar.py --calibrate
 
     The point correspondences will be save as following:
     - PKG_PATH/calibration_data/lidar_camera_calibration/img_corners.npy
@@ -27,7 +27,7 @@ Example Usage:
 
 2. To display the LiDAR points projected on to the camera plane:
 
-    $ roslaunch auro_calibration display_camera_lidar_calibration.launch
+    $ roslaunch lidar_camera_calibration display_camera_lidar_calibration.launch
 
 Notes:
 Make sure this file has executable permissions:
@@ -58,7 +58,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 # ROS modules
-PKG = 'auro_calibration'
+PKG = 'lidar_camera_calibration'
 import roslib; roslib.load_manifest(PKG)
 import rosbag
 import rospy
