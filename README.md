@@ -2,25 +2,25 @@
 
 ## Setup
 
-Run the following to clone the `LiDAR-Camera-Calibration-ROS` package in `ros_workspace/src` directory.
+Run the following to clone the `auro_calibration` package in `ros_workspace/src` directory.
 
 ```
 cd ~/ros_workspace/src
-git clone https://github.com/heethesh/LiDAR-Camera-Calibration-ROS
+git clone https://github.com/heethesh/auro_calibration
 
 cd ~/ros_workspace/
 catkin_make
 source devel/setup.bash
 ```
 
-Make sure you have the ROS bag file in `LiDAR-Camera-Calibration-ROS/bagfiles` folder. Then you can use the following launch files.
+Make sure you have the ROS bag file in `auro_calibration/bagfiles` folder. Then you can use the following launch files.
 
 ## Play ROS Bag File
 
 This launch file will only play the rosbag record file.
 
 ```
-roslaunch LiDAR-Camera-Calibration-ROS play_rosbag.launch
+roslaunch auro_calibration play_rosbag.launch
 ```
 
 ## Run Camera Calibration
@@ -28,10 +28,10 @@ roslaunch LiDAR-Camera-Calibration-ROS play_rosbag.launch
 This launch file will play the rosbag record and runs the `camera_calibration` package from ROS.
 
 ```
-roslaunch LiDAR-Camera-Calibration-ROS camera_calibration.launch
+roslaunch auro_calibration camera_calibration.launch
 ```
 
-23 images were automatically selected by the calibrator and the results are stored in `LiDAR-Camera-Calibration-ROSLiDAR-Camera-Calibration-ROS/calibration_data/camera_calibration`  folder. The following results were obtained:
+23 images were automatically selected by the calibrator and the results are stored in `auro_calibration/calibration_data/camera_calibration`  folder. The following results were obtained:
 
 #### Camera Matrix
 
@@ -52,7 +52,7 @@ roslaunch LiDAR-Camera-Calibration-ROS camera_calibration.launch
 This script will update the camera matrices and the distortion coefficients in the `/sensors/camera/camera_info` topic and creates a new bag file in the same location.
 
 ```
-rosrun LiDAR-Camera-Calibration-ROSLiDAR-Camera-Calibration-ROS update_camera_info.py <original_file.bag> <calibration_file.yaml>
+rosrun auro_calibration update_camera_info.py <original_file.bag> <calibration_file.yaml>
 ```
 
 ## Display Camera Calibration
@@ -60,20 +60,20 @@ rosrun LiDAR-Camera-Calibration-ROSLiDAR-Camera-Calibration-ROS update_camera_in
 This launch file will play the updated rosbag record, run `image_proc` for camera image rectification and displays the rectified and unrectified images.
 
 ```
-roslaunch LiDAR-Camera-Calibration-ROSLiDAR-Camera-Calibration-ROS display_camera_calibration.launch
+roslaunch auro_calibration display_camera_calibration.launch
 ```
 
 ### [YouTube Link for Camera Calibration Demo](https://youtu.be/8FHSmFBTL3U)
 
-[<img src="https://github.com/heethesh/LiDAR-Camera-Calibration-ROSLiDAR-Camera-Calibration-ROS/blob/master/images/camera_calibration.png?raw=true">](https://youtu.be/8FHSmFBTL3U)
+[<img src="https://github.com/heethesh/auro_calibration/blob/master/images/camera_calibration.png?raw=true">](https://youtu.be/8FHSmFBTL3U)
 
 ## Calibrate Camera-LiDAR Point Correspondences
 
 This script will perform calibration using the matplotlib GUI to pick correspondences in the camera and the LiDAR frames. You first need to play the rosbag record in another terminal.
 
 ```
-roslaunch LiDAR-Camera-Calibration-ROSLiDAR-Camera-Calibration-ROS play_rosbag.launch
-rosrun LiDAR-Camera-Calibration-ROSLiDAR-Camera-Calibration-ROS calibrate_camera_lidar.py --calibrate
+roslaunch auro_calibration play_rosbag.launch
+rosrun auro_calibration calibrate_camera_lidar.py --calibrate
 ```
 
 Press [ENTER] to launch the GUIs and pick the corresponding points by selecting the four corner points of the checkerboard in both the camera and the LiDAR frames. 16 corresponding points were selected for calibration at varying position and depths of the checkerboard. One such set of points picked are shown below. OpenCV's PnP RANSAC method was used to find the rotation and translation transforms between the camera and the LiDAR. Since OpenCV's function rectifies the images internally, the 2D points are picked from the unrectified image. Additional, the `rectify` flag can be set to `True` while creating the GUI process to pick points from a rectified image.
@@ -82,14 +82,14 @@ Press [ENTER] to launch the GUIs and pick the corresponding points by selecting 
 
 ### [YouTube Link for Camera-LiDAR Calibration GUI Demo](https://youtu.be/FgP8jZ_siJI)
 
-[<img src="https://github.com/heethesh/LiDAR-Camera-Calibration-ROS/blob/master/images/gui_demo.png?raw=true">](https://youtu.be/FgP8jZ_siJI)
+[<img src="https://github.com/heethesh/auro_calibration/blob/master/images/gui_demo.png?raw=true">](https://youtu.be/FgP8jZ_siJI)
 
 The point correspondences are saved as following:
-- Image Points: `LiDAR-Camera-Calibration-ROS/calibration_data/lidar_camera_calibration/img_corners.npy`
-- LiDAR Points: `LiDAR-Camera-Calibration-ROS/calibration_data/lidar_camera_calibration/pcl_corners.npy`
+- Image Points: `auro_calibration/calibration_data/lidar_camera_calibration/img_corners.npy`
+- LiDAR Points: `auro_calibration/calibration_data/lidar_camera_calibration/pcl_corners.npy`
 
 The calibrated extrinsics are saved as following:
-- `LiDAR-Camera-Calibration-ROS/calibration_data/lidar_camera_calibration/extrinsics.npz`
+- `auro_calibration/calibration_data/lidar_camera_calibration/extrinsics.npz`
     - 'euler' : Euler Angles (RPY rad)
     - 'R'     : Rotation Matrix
     - 'T'     : Translation Offsets (XYZ m)
@@ -120,9 +120,9 @@ The following calibrated extrinsics were obtained:
 This launch file will play the updated rosbag record, run `calibrate_camera_lidar.py` in projection mode and displays the LiDAR point cloud projected on to the image. A static transform is set up between the `world` and the `velodyne` frame.
 
 ```
-roslaunch LiDAR-Camera-Calibration-ROS display_camera_lidar_calibration.launch
+roslaunch auro_calibration display_camera_lidar_calibration.launch
 ```
 
 ### [YouTube Link for Camera-LiDAR Projection Demo](https://youtu.be/lu2HwMWESj8)
 
-[<img src="https://github.com/heethesh/LiDAR-Camera-Calibration-ROS/blob/master/images/camera_lidar_calibrated.png?raw=true">](https://youtu.be/lu2HwMWESj8)
+[<img src="https://github.com/heethesh/auro_calibration/blob/master/images/camera_lidar_calibrated.png?raw=true">](https://youtu.be/lu2HwMWESj8)
