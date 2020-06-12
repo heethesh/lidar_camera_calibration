@@ -134,5 +134,5 @@ roslaunch lidar_camera_calibration display_camera_lidar_calibration.launch
 [<img src="https://github.com/heethesh/lidar_camera_calibration/blob/master/images/camera_lidar_calibrated.png?raw=true">](https://youtu.be/lu2HwMWESj8)
 
 ## TODO
-[ ] Shift to Rviz point-picker for point cloud. Matplotlib GUI picker is not very convinient to use.
-[ ] Add bundle adjustment refinement on re-projection error after PnP RANSAC.
+- [ ] Shift to Rviz point-picker for point cloud. Matplotlib GUI picker is not very convinient to use.
+- [ ] Add bundle adjustment refinement on re-projection error after PnP RANSAC.
