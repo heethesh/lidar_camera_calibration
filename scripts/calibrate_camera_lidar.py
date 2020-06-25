@@ -327,7 +327,13 @@ def calibrate(points2D=None, points3D=None):
     # Estimate extrinsics
     success, rotation_vector, translation_vector, _ = cv2.solvePnPRansac(points3D, 
         points2D, camera_matrix, dist_coeffs, flags=cv2.SOLVEPNP_ITERATIVE)
-    if not success: rospy.logwarn('Optimization unsuccessful')
+
+    # Refine estimate using LM
+    if not success:
+        rospy.logwarn('Initial estimation unsuccessful, skipping refinement')
+    else:
+        rotation_vector, translation_vector = cv2.solvePnPRefineLM(points3D,
+            points2D, camera_matrix, dist_coeffs, rotation_vector, translation_vector)
 
     # Convert rotation vector
     rotation_matrix = cv2.Rodrigues(rotation_vector)[0]
