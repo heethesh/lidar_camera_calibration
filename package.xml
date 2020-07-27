@@ -9,7 +9,7 @@
   <maintainer email="heethesh@cmu.edu">Heethesh Vhavle</maintainer>
 
   <!-- One license tag required, multiple allowed, one license per tag -->
-  <license>TODO</license>
+  <license>BSD</license>
 
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <url type="website">http://github.com/heethesh/lidar_camera_calibration</url>
