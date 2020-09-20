@@ -88,7 +88,9 @@ roslaunch lidar_camera_calibration play_rosbag.launch bagfile:=/path/to/file.bag
 rosrun lidar_camera_calibration calibrate_camera_lidar.py --calibrate
 ```
 
-Press [ENTER] to launch the GUIs and pick the corresponding points by selecting the four corner points of the checkerboard in both the camera and the LiDAR frames. 16 corresponding points were selected for calibration at varying position and depths of the checkerboard. One such set of points picked are shown below. OpenCV's PnP RANSAC + refinement using LM is used to find the rotation and translation transforms between the camera and the LiDAR. Since OpenCV's function rectifies the images internally, the 2D points are picked from the unrectified image. Additional, the `rectify` flag can be set to `True` while creating the GUI process to pick points from a rectified image.
+Press [ENTER] to launch the GUIs and pick the corresponding points by selecting the four corner points of the checkerboard in both the camera and the LiDAR frames. You may update the point cloud field-of-view to display [here](https://github.com/heethesh/lidar_camera_calibration/blob/master/scripts/calibrate_camera_lidar.py#L232)  
+
+OpenCV's PnP RANSAC + refinement using LM is used to find the rotation and translation transforms between the camera and the LiDAR. Since OpenCV's function rectifies the images internally, the 2D points are picked from the unrectified image. Additional, the `rectify` flag can be set to `True` while creating the GUI process to pick points from a rectified image.
 
 **NOTE: The point files are appended and the extrinsics estimates are calculated and refined continuously using a RANSAC approach.**
 
@@ -129,7 +131,7 @@ The following calibrated extrinsics were obtained:
 
 ## Display Camera-LiDAR Projection
 
-This launch file will play the updated rosbag record, run `calibrate_camera_lidar.py` in projection mode and displays the LiDAR point cloud projected on to the image. A static transform is set up between the `world` and the `velodyne` frame which needs to be updates with the values above in the format `X Y Z Y P R` within the launch file.
+This launch file will play the updated rosbag record, run `calibrate_camera_lidar.py` in projection mode and displays the LiDAR point cloud projected on to the image. A static transform is set up between the `world` and the `velodyne` frame which needs to be updates with the values above in the format `X Y Z Y P R` within the launch file. You may update the point cloud field-of-view to display [here](https://github.com/heethesh/lidar_camera_calibration/blob/master/scripts/calibrate_camera_lidar.py#L383).
 
 ```
 roslaunch lidar_camera_calibration display_camera_lidar_calibration.launch
