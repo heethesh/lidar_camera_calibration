@@ -8,6 +8,8 @@ Install dependencies.
 sudo apt install ros-DISTRO-camera-calibration
 ```
 
+**NOTE: To use `solvePnPRefineLM`, you need OpenCV >= 4.1.1, otherwise the LM pose refinement step will be skipped.**
+
 Run the following to clone the `lidar_camera_calibration` package in `ros_workspace/src` directory.
 
 ```
