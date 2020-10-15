@@ -331,6 +331,8 @@ def calibrate(points2D=None, points3D=None):
     # Refine estimate using LM
     if not success:
         rospy.logwarn('Initial estimation unsuccessful, skipping refinement')
+    elif not hasattr(cv2, 'solvePnPRefineLM'):
+        rospy.logwarn('solvePnPRefineLM requires OpenCV >= 4.1.1, skipping refinement')
     else:
         rotation_vector, translation_vector = cv2.solvePnPRefineLM(points3D,
             points2D, camera_matrix, dist_coeffs, rotation_vector, translation_vector)
