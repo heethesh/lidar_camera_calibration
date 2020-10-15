@@ -8,8 +8,6 @@ Install dependencies.
 sudo apt install ros-DISTRO-camera-calibration
 ```
 
-**NOTE: To use `solvePnPRefineLM`, you need OpenCV >= 4.1.1, otherwise the LM pose refinement step will be skipped.**
-
 Run the following to clone the `lidar_camera_calibration` package in `ros_workspace/src` directory.
 
 ```
@@ -95,6 +93,8 @@ Press [ENTER] to launch the GUIs and pick the corresponding points by selecting 
 OpenCV's PnP RANSAC + refinement using LM is used to find the rotation and translation transforms between the camera and the LiDAR. Since OpenCV's function rectifies the images internally, the 2D points are picked from the unrectified image. Additional, the `rectify` flag can be set to `True` while creating the GUI process to pick points from a rectified image.
 
 **NOTE: The point files are appended and the extrinsics estimates are calculated and refined continuously using a RANSAC approach.**
+
+**NOTE: To use `solvePnPRefineLM`, you need OpenCV >= 4.1.1, otherwise the LM pose refinement step will be skipped.**
 
 ### [YouTube Link for Camera-LiDAR Calibration GUI Demo](https://youtu.be/FgP8jZ_siJI)
 
