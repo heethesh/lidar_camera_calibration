@@ -42,7 +42,8 @@
         type="static_transform_publisher"
         name="world_velodyne_tf"
         output="screen"
-        args="-0.14614803 -0.49683771 -0.27546327 2.02406989 -1.35998386 -0.44460865 world velodyne" />
+        <!-- Fill this with estimated transform X Y Z Y P R -->
+        args="0 0 0 0 0 0 world velodyne" />
 
     <!-- Setup params for Camera-LiDAR calibration script -->
     <param name="camera_info_topic" type="str" value="$(arg camera)/camera_info" />
