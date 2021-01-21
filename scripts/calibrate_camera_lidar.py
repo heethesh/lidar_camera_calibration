@@ -72,6 +72,7 @@ from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 from sensor_msgs.msg import Image, CameraInfo, PointCloud2
 
 # Global variables
+OUSTER_LIDAR = False
 PAUSE = False
 FIRST_TIME = True
 KEY_LOCK = threading.Lock()
@@ -227,6 +228,9 @@ def extract_points_3D(velodyne, now):
     # Extract points data
     points = ros_numpy.point_cloud2.pointcloud2_to_array(velodyne)
     points = np.asarray(points.tolist())
+    
+    # Group all beams together and pick the first 4 columns for X, Y, Z, intensity.
+    if OUSTER_LIDAR: points = points.reshape(-1, 9)[:, :4]
 
     # Select points within chessboard range
     inrange = np.where((points[:, 0] > 0) &
@@ -380,6 +384,9 @@ def project_point_cloud(velodyne, img_msg, image_pub):
     # Extract points from message
     points3D = ros_numpy.point_cloud2.pointcloud2_to_array(velodyne)
     points3D = np.asarray(points3D.tolist())
+    
+    # Group all beams together and pick the first 4 columns for X, Y, Z, intensity.
+    if OUSTER_LIDAR: points3D = points3D.reshape(-1, 9)[:, :4]
     
     # Filter points in front of camera
     inrange = np.where((points3D[:, 2] > 0) &
