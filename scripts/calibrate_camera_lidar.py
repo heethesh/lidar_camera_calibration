@@ -329,8 +329,16 @@ def calibrate(points2D=None, points3D=None):
     dist_coeffs = CAMERA_MODEL.distortionCoeffs()
 
     # Estimate extrinsics
-    success, rotation_vector, translation_vector, _ = cv2.solvePnPRansac(points3D, 
+    success, rotation_vector, translation_vector, inliers = cv2.solvePnPRansac(points3D, 
         points2D, camera_matrix, dist_coeffs, flags=cv2.SOLVEPNP_ITERATIVE)
+    
+    # Compute re-projection error.
+    points2D_reproj = cv2.projectPoints(points3D, rotation_vector,
+        translation_vector, camera_matrix, dist_coeffs)[0].squeeze(1)
+    assert(points2D_reproj.shape == points2D.shape)
+    error = (points2D_reproj - points2D)[inliers]  # Compute error only over inliers.
+    rmse = np.sqrt(np.mean(error[:, 0] ** 2 + error[:, 1] ** 2))
+    rospy.loginfo('Re-projection error before LM refinement (RMSE) in px: ' + str(rmse))
 
     # Refine estimate using LM
     if not success:
@@ -338,8 +346,17 @@ def calibrate(points2D=None, points3D=None):
     elif not hasattr(cv2, 'solvePnPRefineLM'):
         rospy.logwarn('solvePnPRefineLM requires OpenCV >= 4.1.1, skipping refinement')
     else:
-        rotation_vector, translation_vector = cv2.solvePnPRefineLM(points3D,
-            points2D, camera_matrix, dist_coeffs, rotation_vector, translation_vector)
+        assert len(inliers) >= 3, 'LM refinement requires at least 3 inlier points'
+        rotation_vector, translation_vector = cv2.solvePnPRefineLM(points3D[inliers],
+            points2D[inliers], camera_matrix, dist_coeffs, rotation_vector, translation_vector)
+
+        # Compute re-projection error.
+        points2D_reproj = cv2.projectPoints(points3D, rotation_vector,
+            translation_vector, camera_matrix, dist_coeffs)[0].squeeze(1)
+        assert(points2D_reproj.shape == points2D.shape)
+        error = (points2D_reproj - points2D)[inliers]  # Compute error only over inliers.
+        rmse = np.sqrt(np.mean(error[:, 0] ** 2 + error[:, 1] ** 2))
+        rospy.loginfo('Re-projection error after LM refinement (RMSE) in px: ' + str(rmse))
 
     # Convert rotation vector
     rotation_matrix = cv2.Rodrigues(rotation_vector)[0]
